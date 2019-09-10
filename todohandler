@@ -86,7 +86,7 @@ addtodo() {
       else
         newstr="[$prio] [$category] $desc"
       fi
-      if grep -Fxq "$newstr" "$CALCURSE_TODO_FILE";then
+      if grep -Fq "$desc" "$CALCURSE_TODO_FILE";then
         echo "TODO already exist."
       else
         echo "$newstr" >> "$CALCURSE_TODO_FILE"
