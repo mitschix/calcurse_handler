@@ -1,0 +1,157 @@
+#!/bin/sh
+#
+# Title: Handle Calcurse TODOs
+#
+# Description: Tiny script to add or query a todo to/from calcurse
+#
+# Requires:
+#   + calcurse: need to have calcurse installed
+#
+# 
+# Author:   mitschix (is181803@fhstp.ac.at)
+# Created:  20190903
+#
+#
+# Last Updated: 20190910 - mitschix
+#
+
+#set -xv
+# TODO edit this if you do not use the default path
+CALCURSE_PATH="/home/$USER/.calcurse"
+
+CALCURSE_TODO_FILE="$CALCURSE_PATH/todo"
+
+help () {
+  echo "Tiny script to add/query TODOs to/from calcurse"
+  echo ""
+  echo "Parameters:"
+  echo "  -h  --  Displays this help message" 
+  echo "  -f <file>  --  uses file to update todos format of input need to be <priority> <category> <description> (e.g. 1 wlan security test)" 
+  echo "  -A <priority number> <category> <description> (--note <notes>)-- adds TODO to calcurse"
+  echo "  -S <category> -- search todos in given category"
+  echo "  -s <priority> -- search todos in given priority"
+  echo ""
+  echo "Usage:"
+  echo "  todohandler -A <priority number> <category> <description>"
+  echo "  todohandler -f <filename>"
+  echo "  todohandler -s <priority number>"
+}
+
+checknote() {
+  input=$*
+  desc=""
+  notes=""
+  note=0
+  for word in $input
+  do
+    # check if notes is defined and change flag if true
+    [ "$word" = "--note" ] && note=1 && continue
+    if [ $note -eq 1 ]
+    then
+      if [ "$notes" != "" ]
+      then
+        notes="${notes} "
+      fi
+      notes="${notes}${word}"
+      continue
+    fi
+    if [ "$desc" != "" ]
+    then
+      desc="${desc} "
+    fi
+    desc="${desc}${word}"
+  done
+}
+
+addtodo() {
+  prio=$1
+  category=$2
+  shift 2
+  checknote "$@"
+
+  if [ -z "$prio" ] || [ -z "$category" ] || [ -z "$desc" ];then
+    echo "Missing todo parameters!"
+  else
+    pmatch=$(echo "$prio" | grep "^[0-9]$")
+    if [ -n "$pmatch" ];then
+      if [ -n "$notes" ];then
+        # < replacement for cat to fit shellcheck
+        filename=$( < /dev/urandom tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+        echo "$notes" > $CALCURSE_PATH/notes/"$filename"
+        newstr="[$prio]>$filename [$category] $desc"
+      else
+        newstr="[$prio] [$category] $desc"
+      fi
+      if grep -Fxq "$newstr" "$CALCURSE_TODO_FILE";then
+        echo "TODO already exist."
+      else
+        echo "$newstr" >> $CALCURSE_TODO_FILE
+        echo "TODO added - $newstr."
+      fi
+    else
+      echo "Priority is not a single integer!"
+    fi
+  fi
+}
+
+addfile(){
+  if [ -z "$1" ];then
+    echo "Missing input file!"
+  else
+    cat "$1" > /dev/null 2>&1
+    rc=$?
+    if [ "$rc" -eq 1 ];then
+      echo "File does not exist!"
+    else
+      i=0
+      while read -r line;do
+        if [ -n "$line" ];then
+          i=$((i+1))
+          f_prio=$(echo "$line" | cut -d " " -f 1)
+          f_cat=$(echo "$line" | cut -d " " -f 2)
+          f_desc=$(echo "$line" | cut -d " " -f 3-)
+          pmatch=$(echo "$f_prio" | grep "^[0-9]$")
+          if [ -z "$pmatch" ];then
+            echo "Wrong format - omitting line: $i - Priority is not a single integer!"
+          elif [ -z "$f_cat" ] || [ "$f_cat" = "$f_prio" ];then
+            echo "Wrong format - omitting line: $i - Missing category!"
+          elif [ -z "$f_desc" ];then
+            echo "Wrong format - omitting line: $i - Missing description!"
+          else
+            addtodo "$f_prio" "$f_cat" "$f_desc"
+        fi
+    fi
+  done < "$1"
+  fi
+  fi
+}
+
+querytodo_cat() {
+  if [ -z "$1" ];then
+    echo "Missing searching string!"
+  else
+    calcurse -D "$CALCURSE_PATH" -t -S "$1" | tail -n +2
+  fi
+}
+
+querytodo_prio() {
+  if [ -z "$1" ];then
+    echo "Missing searching priority!"
+  else
+    calcurse -D "$CALCURSE_PATH" -t"$1" | tail -n +2
+  fi
+
+}
+
+
+# main
+cmd="$1"
+case "$cmd" in
+  "-f") addfile "$2" ;;
+  "-S") querytodo_cat "$2" ;;
+  "-s") querytodo_prio "$2" ;;
+  "-A") shift 1 ; addtodo "$@" ;;
+  "-h") help;;
+  *) echo "Not a valid command - might use -h for help";;
+
+esac
