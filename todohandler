@@ -22,19 +22,23 @@ CALCURSE_PATH="/home/$USER/.calcurse"
 CALCURSE_TODO_FILE="$CALCURSE_PATH/todo"
 
 help () {
-  echo "Tiny script to add/query TODOs to/from calcurse"
-  echo ""
-  echo "Parameters:"
-  echo "  -h  --  Displays this help message" 
-  echo "  -f <file>  --  uses file to update todos format of input need to be <priority> <category> <description> (e.g. 1 wlan security test)" 
-  echo "  -A <priority number> <category> <description> (--note <notes>)-- adds TODO to calcurse"
-  echo "  -S <category> -- search todos in given category"
-  echo "  -s <priority> -- search todos in given priority"
-  echo ""
-  echo "Usage:"
-  echo "  todohandler -A <priority number> <category> <description>"
-  echo "  todohandler -f <filename>"
-  echo "  todohandler -s <priority number>"
+  echo "
+Tiny script to add/query TODOs to/from calcurse
+  
+Parameters:
+  -h, --help      Displays this help message
+  -f <file>       uses file to update todos. Format of input need to be:
+                  <priority> <category> <description>
+                  e.g. 1 Wlan security test
+
+  -A <priority> <category> <description> (--note <notes>)      adds TODO to calcurse
+  -S <string>     search todos with given string
+  -s <priority>   search todos in given priority
+  
+Usage:
+    todohandler -A <priority> <category> <description> [--note <notes>]
+    todohandler -f <filename>
+    todohandler -s <priority>"
 }
 
 checknote() {
@@ -147,11 +151,11 @@ querytodo_prio() {
 # main
 cmd="$1"
 case "$cmd" in
-  "-f") addfile "$2" ;;
-  "-S") querytodo_cat "$2" ;;
-  "-s") querytodo_prio "$2" ;;
-  "-A") shift 1 ; addtodo "$@" ;;
-  "-h") help;;
+  "-f"|"--add-file") addfile "$2" ;;
+  "-S"|"--search-string") querytodo_cat "$2" ;;
+  "-s"|"--search-priority") querytodo_prio "$2" ;;
+  "-A"|"--add-todo") shift 1 ; addtodo "$@" ;;
+  "-h"|"--help") help;;
   *) echo "Not a valid command - might use -h for help";;
 
 esac
