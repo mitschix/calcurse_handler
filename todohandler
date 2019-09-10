@@ -81,7 +81,7 @@ addtodo() {
       if [ -n "$notes" ];then
         # < replacement for cat to fit shellcheck
         filename=$( < /dev/urandom tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
-        echo "$notes" > $CALCURSE_PATH/notes/"$filename"
+        echo "$notes" > "$CALCURSE_PATH/notes/$filename"
         newstr="[$prio]>$filename [$category] $desc"
       else
         newstr="[$prio] [$category] $desc"
@@ -89,7 +89,7 @@ addtodo() {
       if grep -Fxq "$newstr" "$CALCURSE_TODO_FILE";then
         echo "TODO already exist."
       else
-        echo "$newstr" >> $CALCURSE_TODO_FILE
+        echo "$newstr" >> "$CALCURSE_TODO_FILE"
         echo "TODO added - $newstr."
       fi
     else
