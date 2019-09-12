@@ -110,17 +110,23 @@ addfile(){
       i=0
       while read -r line;do
         if [ -n "$line" ];then
-          i=$((i+1))
+          # line count
+          line_nr=$((line_nr+1))
+          # ignore comments in file
+          char_1=$(cut -c-1 <<< $line)
+          if [ "#" == "$char_1" ];then
+            continue
+          fi
           f_prio=$(echo "$line" | cut -d " " -f 1)
           f_cat=$(echo "$line" | cut -d " " -f 2)
           f_desc=$(echo "$line" | cut -d " " -f 3-)
           pmatch=$(echo "$f_prio" | grep "^[0-9]$")
           if [ -z "$pmatch" ];then
-            echo "Wrong format - omitting line: $i - Priority is not a single integer!"
+            echo "Wrong format - omitting line: $line_nr - Priority is not a single integer!"
           elif [ -z "$f_cat" ] || [ "$f_cat" = "$f_prio" ];then
-            echo "Wrong format - omitting line: $i - Missing category!"
+            echo "Wrong format - omitting line: $line_nr - Missing category!"
           elif [ -z "$f_desc" ];then
-            echo "Wrong format - omitting line: $i - Missing description!"
+            echo "Wrong format - omitting line: $line_nr - Missing description!"
           else
             addtodo "$f_prio" "$f_cat" "$f_desc"
         fi
