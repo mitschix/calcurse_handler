@@ -1,0 +1,12 @@
+# test if prio is not a number
+a test abcd
+# test if prio is not a one digit number
+11 test abcd
+# test if category and description missing
+1
+# test if description missing
+1 test
+# test if normal todo work
+1 test abcd
+# test if note work
+1 test abcde --note testabcd
